@@ -1,65 +1,131 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight, Users, TrendingUp, Shield } from "lucide-react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+
+export default function HomePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function checkUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        router.push("/admin");
+      } else {
+        setLoading(false);
+      }
+    }
+    checkUser();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505]">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center animate-pulse">
+            <Sparkles className="w-6 h-6 text-white" />
+          </div>
+          <span className="text-xl font-bold text-gradient">Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-[#050505] relative overflow-hidden">
+      {/* Decorative Background */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px]" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px]" />
+
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-4xl mx-auto"
+        >
+          {/* Logo */}
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-center gap-4 mb-8"
+          >
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/30">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-4xl font-bold tracking-tight text-gradient">DashTalent</span>
+          </motion.div>
+
+          {/* Hero Text */}
+          <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+            Gestiona tu Catálogo
+            <br />
+            <span className="text-gradient">de Talento</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+            Plataforma moderna para administrar y mostrar tu portafolio de talentos con estilo profesional
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+            <Link href="/login">
+              <button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl px-8 py-4 font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all flex items-center justify-center gap-2 group">
+                Iniciar Sesión
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </Link>
+            <Link href="/signup">
+              <button className="w-full sm:w-auto glass border border-white/10 text-white rounded-xl px-8 py-4 font-medium hover:bg-white/5 transition-all">
+                Crear Cuenta
+              </button>
+            </Link>
+          </div>
+
+          {/* Features */}
+          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="glass rounded-2xl p-6 border border-white/10"
+            >
+              <Users className="w-8 h-8 text-blue-500 mb-4 mx-auto" />
+              <h3 className="font-bold mb-2">Gestión Completa</h3>
+              <p className="text-sm text-gray-400">Administra perfiles de talento con facilidad</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="glass rounded-2xl p-6 border border-white/10"
+            >
+              <TrendingUp className="w-8 h-8 text-blue-500 mb-4 mx-auto" />
+              <h3 className="font-bold mb-2">Dashboard Moderno</h3>
+              <p className="text-sm text-gray-400">Interfaz intuitiva y profesional</p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="glass rounded-2xl p-6 border border-white/10"
+            >
+              <Shield className="w-8 h-8 text-blue-500 mb-4 mx-auto" />
+              <h3 className="font-bold mb-2">Seguro y Confiable</h3>
+              <p className="text-sm text-gray-400">Autenticación con Supabase</p>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
