@@ -100,7 +100,6 @@ export default function AddTalentPage() {
                     experiencia: "",
                     especialidad: "",
                     descripcion: "",
-                    fotos: [""],
                     tags: ""
                 });
                 setTouched({});
