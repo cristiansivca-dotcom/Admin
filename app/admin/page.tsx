@@ -1,6 +1,8 @@
 import { Users, UserCheck, Star, Clock, ArrowUpRight, LayoutDashboard, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 const StatCard = ({ icon: Icon, label, value, color }: { icon: LucideIcon, label: string, value: string, color: string }) => (
     <div className="glass p-6 rounded-3xl border border-white/5 glass-hover group">
         <div className="flex items-center justify-between mb-4">

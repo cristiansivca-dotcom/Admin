@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import TalentCatalog from "./TalentCatalog";
 
-
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TalentsPage() {
     const supabase = await createClient();
