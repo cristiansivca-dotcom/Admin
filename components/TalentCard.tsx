@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Tag, ChevronLeft, ChevronRight } from "lucide-react";
+import { User, Tag, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
 
 interface Talent {
@@ -78,9 +79,19 @@ export default function TalentCard({ talent }: TalentCardProps) {
                                 />
                             ))}
                         </div>
+
                     </>
                 )}
             </div>
+
+            {/* Edit Button (Top Right Absolute) */}
+            <Link
+                href={`/admin/talents/${talent.id}/edit`}
+                className="absolute top-3 right-3 z-20 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+                title="Editar Talento"
+            >
+                <Edit className="w-4 h-4" />
+            </Link>
 
             {/* Content */}
             <div className="p-5 space-y-3">
@@ -140,6 +151,6 @@ export default function TalentCard({ talent }: TalentCardProps) {
                     </div>
                 )}
             </div>
-        </motion.div>
+        </motion.div >
     );
 }

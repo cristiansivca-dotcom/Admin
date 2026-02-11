@@ -1,10 +1,26 @@
 @import "tailwindcss";
 
 :root {
+  /* Default (Light Mode) */
+  --background: #ffffff;
+  --foreground: #050505;
+  
+  /* Glass Effects Light */
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-highlight: rgba(0, 0, 0, 0.05);
+  
+  /* Primary Colors (Default Blue) */
+  --primary-color: 59, 130, 246; /* RGB values for Tailwind opacity support */
+  --secondary-color: 99, 102, 241;
+}
+
+.dark {
+  /* Dark Mode */
   --background: #050505;
   --foreground: #ffffff;
-  --primary: #3b82f6;
-  --secondary: #6366f1;
+  
+  /* Glass Effects Dark */
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.05);
@@ -16,6 +32,10 @@
   --color-glass: var(--glass-bg);
   --color-glass-border: var(--glass-border);
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* Dynamic Primary Colors */
+  --color-primary: rgb(var(--primary-color));
+  --color-secondary: rgb(var(--secondary-color));
 }
 
 body {
@@ -23,9 +43,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 0% 0%, rgba(var(--primary-color), 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(var(--secondary-color), 0.05) 0%, transparent 50%);
 }
 
 .glass {
@@ -41,12 +62,22 @@ body {
 
 .glass-hover:hover {
   background: var(--glass-highlight);
-  border-color: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border-color: var(--foreground); /* Adaptive border on hover */
+  border-opacity: 0.1;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-hover:hover {
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);
+  background: linear-gradient(135deg, var(--foreground) 0%, rgba(var(--foreground), 0.5) 100%); /* Adaptive gradient */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.dark .text-gradient {
+    background: linear-gradient(135deg, #ffffff 0%, #a5a5a5 100%);
 }
