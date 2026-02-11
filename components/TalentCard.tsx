@@ -1,10 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Tag, ChevronLeft, ChevronRight, Edit } from "lucide-react";
+import { User, Tag, ChevronLeft, ChevronRight, Edit, Trash2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { deleteTalent } from "@/app/admin/talents/add/actions";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/lib/toast";
 
 interface Talent {
     id: string;
@@ -24,7 +27,10 @@ interface TalentCardProps {
 }
 
 export default function TalentCard({ talent }: TalentCardProps) {
+    const router = useRouter();
+    const { success, error: toastError } = useToast();
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [isDeleting, setIsDeleting] = useState(false);
     const photos = talent.fotos && talent.fotos.length > 0 ? talent.fotos : ["/placeholder-avatar.png"];
 
     const nextPhoto = () => {
@@ -35,11 +41,34 @@ export default function TalentCard({ talent }: TalentCardProps) {
         setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
     };
 
+    const handleDelete = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (confirm(`¿Estás seguro de que deseas eliminar a ${talent.nombre}? Esta acción no se puede deshacer.`)) {
+            setIsDeleting(true);
+            try {
+                const result = await deleteTalent(talent.id);
+                if (result.success) {
+                    success(`${talent.nombre} ha sido eliminado.`);
+                    router.refresh();
+                } else {
+                    toastError(`Error al eliminar: ${result.error}`);
+                }
+            } catch (error) {
+                console.error("Delete error:", error);
+                toastError("Ocurrió un error inesperado al eliminar.");
+            } finally {
+                setIsDeleting(false);
+            }
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-2xl overflow-hidden border border-white/10 hover:border-blue-500/30 transition-all group"
+            className="relative glass rounded-2xl overflow-hidden border border-white/10 hover:border-blue-500/30 transition-all group"
         >
             {/* Photo Gallery */}
             <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-600/10 to-indigo-600/10 overflow-hidden">
@@ -84,14 +113,24 @@ export default function TalentCard({ talent }: TalentCardProps) {
                 )}
             </div>
 
-            {/* Edit Button (Top Right Absolute) */}
-            <Link
-                href={`/admin/talents/${talent.id}/edit`}
-                className="absolute top-3 right-3 z-20 bg-black/40 hover:bg-black/60 backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
-                title="Editar Talento"
-            >
-                <Edit className="w-4 h-4" />
-            </Link>
+            {/* Action Buttons (Top Right) */}
+            <div className="absolute top-4 right-4 z-50 flex flex-col gap-3 transition-all duration-300">
+                <Link
+                    href={`/admin/talents/${talent.id}/edit`}
+                    className="bg-black/40 hover:bg-black/60 backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all"
+                    title="Editar Talento"
+                >
+                    <Edit className="w-4 h-4" />
+                </Link>
+                <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="bg-red-500/40 hover:bg-red-500/60 backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all disabled:opacity-50"
+                    title="Eliminar Talento"
+                >
+                    {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                </button>
+            </div>
 
             {/* Content */}
             <div className="p-5 space-y-3">

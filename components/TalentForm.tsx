@@ -8,15 +8,43 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/lib/toast";
+
+interface TalentData {
+    id?: string;
+    nombre: string;
+    genero: string;
+    altura: string;
+    experiencia: string;
+    especialidad: string;
+    descripcion: string;
+    tags: string[];
+    rating: number;
+    fotos: string[];
+}
+
+export interface TalentSubmissionData {
+    nombre: string;
+    genero: string;
+    altura: string;
+    experiencia: string;
+    especialidad: string;
+    descripcion: string;
+    rating: string;
+    fotosFiles: File[];
+    existingPhotos: string[];
+    tags: string[];
+}
 
 interface TalentFormProps {
-    initialData?: any;
+    initialData?: TalentData;
     mode: "add" | "edit";
-    onSubmit: (data: any) => Promise<{ success: boolean; error?: string }>;
+    onSubmit: (data: TalentSubmissionData) => Promise<{ success: boolean; error?: string }>;
 }
 
 export default function TalentForm({ initialData, mode, onSubmit }: TalentFormProps) {
     const router = useRouter();
+    const { success, error: toastError } = useToast();
     const [formData, setFormData] = useState({
         nombre: initialData?.nombre || "",
         genero: initialData?.genero || "Dama",
@@ -36,7 +64,7 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
     const [serverError, setServerError] = useState<string | null>(null);
 
     // Validation function
-    const validateField = (name: string, value: any) => {
+    const validateField = (name: string, value: string | File[]) => {
         let error = "";
 
         switch (name) {
@@ -106,6 +134,7 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
         try {
             const result = await onSubmit(dataToSend);
             if (result.success) {
+                success(mode === "add" ? "Talento registrado correctamente" : "Talento actualizado correctamente");
                 setStatus("success");
                 setServerError(null);
                 if (mode === "add") {
@@ -124,18 +153,22 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
                     setTouched({});
                     setErrors({});
                 } else {
-                    // For edit, maybe redirect or just show success
-                    // router.push("/admin/talents"); 
+                    // Small delay to let the toast be seen
+                    setTimeout(() => {
+                        router.push("/admin/talents");
+                        router.refresh();
+                    }, 800);
                 }
-
             } else {
                 console.error("submit error:", result.error);
                 setServerError(result.error ?? "Error desconocido en el servidor");
+                toastError(result.error ?? "Error al procesar el talento");
                 setStatus("error");
             }
         } catch (error: unknown) {
             console.error(error);
             setServerError(error instanceof Error ? error.message : String(error));
+            toastError("Error inesperado en el sistema");
             setStatus("error");
         } finally {
             setLoading(false);

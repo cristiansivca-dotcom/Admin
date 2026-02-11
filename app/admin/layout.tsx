@@ -34,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const pathname = usePathname();
 
     return (
-        <div className="min-h-screen flex bg-[#050505]">
+        <div className="min-h-screen flex bg-[#000000]">
             {/* Sidebar */}
             <aside className="w-72 border-r border-white/5 p-6 flex flex-col gap-8 glass hidden md:flex sticky top-0 h-screen">
                 <div className="flex items-center gap-3 px-2">

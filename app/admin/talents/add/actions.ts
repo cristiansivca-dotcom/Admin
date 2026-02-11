@@ -79,7 +79,7 @@ export async function addTalent(formData: TalentForm) {
     return { success: true };
 }
 
-export async function updateTalent(id: string, formData: any) {
+export async function updateTalent(id: string, formData: TalentForm & { existingPhotos?: string[] }) {
     const supabase = await createClient();
 
     const uploadedUrls: string[] = [];
@@ -139,5 +139,62 @@ export async function updateTalent(id: string, formData: any) {
     revalidatePath(`/admin/talents/${id}`);
     revalidatePath(`/admin/talents/${id}/edit`);
 
+    return { success: true };
+}
+
+export async function deleteTalent(id: string) {
+    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+        : await createClient();
+
+    // 1. Get talent to find photos to delete
+    const { data: talent, error: fetchError } = await supabase
+        .from("talents")
+        .select("fotos")
+        .eq("id", id)
+        .single();
+
+    if (fetchError) {
+        console.error("Fetch Error:", fetchError);
+        return { success: false, error: fetchError.message };
+    }
+
+    // 2. Delete photos from storage
+    if (talent?.fotos && talent.fotos.length > 0) {
+        const pathsToDelete = talent.fotos
+            .map((url: string) => {
+                const parts = url.split("/talent-photos/");
+                return parts.length > 1 ? parts[1] : null;
+            })
+            .filter(Boolean) as string[];
+
+        if (pathsToDelete.length > 0) {
+            const { error: storageError } = await supabase.storage
+                .from("talent-photos")
+                .remove(pathsToDelete);
+
+            if (storageError) {
+                console.error("Storage Delete Error:", storageError);
+                // We continue even if storage delete fails to ensure DB is cleaned up, 
+                // but we log it.
+            }
+        }
+    }
+
+    // 3. Delete from database
+    const { error: deleteError } = await supabase
+        .from("talents")
+        .delete()
+        .eq("id", id);
+
+    if (deleteError) {
+        console.error("Delete Error:", deleteError);
+        return { success: false, error: deleteError.message };
+    }
+
+    revalidatePath("/admin/talents");
     return { success: true };
 }

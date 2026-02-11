@@ -3,15 +3,10 @@ import TalentForm from "@/components/TalentForm";
 import { updateTalent } from "../../add/actions";
 import { redirect } from "next/navigation";
 
-// Needed to pass ID to update action from the client component
-async function updateAction(id: string, data: any) {
-    "use server";
-    return updateTalent(id, data);
-}
 
-export default async function EditTalentPage({ params }: { params: { id: string } }) {
+export default async function EditTalentPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const supabase = await createClient();
-    const { id } = params;
 
     const { data: talent, error } = await supabase
         .from("talents")
@@ -23,11 +18,8 @@ export default async function EditTalentPage({ params }: { params: { id: string 
         redirect("/admin/talents");
     }
 
-    // Wrap the update action to pre-fill the ID
-    const handleUpdate = async (data: any) => {
-        "use server";
-        return updateTalent(id, data);
-    };
+    // Pass the ID to the update action using bind
+    const handleUpdateWithId = updateTalent.bind(null, id);
 
-    return <TalentForm initialData={talent} mode="edit" onSubmit={handleUpdate} />;
+    return <TalentForm initialData={talent} mode="edit" onSubmit={handleUpdateWithId} />;
 }
