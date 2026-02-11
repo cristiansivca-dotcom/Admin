@@ -80,7 +80,15 @@ export async function addTalent(formData: TalentForm) {
 }
 
 export async function updateTalent(id: string, formData: TalentForm & { existingPhotos?: string[] }) {
-    const supabase = await createClient();
+    console.log("Updating talent:", id);
+    console.log("Form data:", JSON.stringify(formData, null, 2));
+
+    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+        : await createClient();
 
     const uploadedUrls: string[] = [];
 
@@ -113,7 +121,9 @@ export async function updateTalent(id: string, formData: TalentForm & { existing
     const mainPhoto = finalPhotos.length > 0 ? finalPhotos[0] : null;
 
     // 3. Update database
-    const { error } = await supabase
+    console.log("Final photos to store:", finalPhotos);
+
+    const { data: updatedData, error } = await supabase
         .from("talents")
         .update({
             nombre: formData.nombre,
@@ -128,11 +138,19 @@ export async function updateTalent(id: string, formData: TalentForm & { existing
             tags: formData.tags,
             // active: true // usually we don't reset active status on edit unless specified
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
+
+    console.log("Update database result:", { updatedData, error });
 
     if (error) {
         console.error("Update Error:", error);
         return { success: false, error: error.message };
+    }
+
+    if (!updatedData || updatedData.length === 0) {
+        console.warn("No rows updated. Check if ID is correct:", id);
+        return { success: false, error: "No se encontró el talento o no hubo cambios" };
     }
 
     revalidatePath("/admin/talents");
