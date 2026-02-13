@@ -3,16 +3,36 @@
 import { useState } from "react";
 import { signup } from "./actions";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Mail, Lock, User, ArrowRight, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SignupPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<{ fullName?: boolean; email?: boolean; password?: boolean }>({});
 
-    async function handleSubmit(formData: FormData) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const fullName = formData.get("fullName") as string;
+        const email = formData.get("email") as string;
+        const password = formData.get("password") as string;
+
+        const newErrors: { fullName?: boolean; email?: boolean; password?: boolean } = {};
+        if (!fullName) newErrors.fullName = true;
+        if (!email) newErrors.email = true;
+        if (!password || password.length < 6) newErrors.password = true;
+
+        if (Object.keys(newErrors).length > 0) {
+            setFieldErrors(newErrors);
+            setTimeout(() => setFieldErrors({}), 500);
+            return;
+        }
+
         setLoading(true);
         setError(null);
+
         const result = await signup(formData);
         if (result?.error) {
             setError(result.error);
@@ -23,90 +43,132 @@ export default function SignupPage() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#050505] p-4">
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
                 className="w-full max-w-md"
             >
-                <div className="glass rounded-3xl p-8 border border-white/10">
+                <div className="glass rounded-[2.5rem] p-10 border border-white/5 shadow-2xl relative overflow-hidden">
+                    {/* Decorative background pulse */}
+                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl" />
+                    <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl" />
+
                     {/* Logo */}
-                    <div className="flex items-center justify-center gap-3 mb-8">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                            <Sparkles className="w-6 h-6 text-white" />
+                    <div className="flex flex-col items-center justify-center gap-4 mb-10 relative z-10">
+                        <motion.div
+                            whileHover={{ scale: 1.05, rotate: -5 }}
+                            className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 border border-white/10"
+                        >
+                            <Sparkles className="w-8 h-8 text-white" />
+                        </motion.div>
+                        <div className="text-center">
+                            <span className="text-3xl font-black tracking-tighter text-gradient block">Crear Cuenta</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-500/80 mt-1 block">Join the SIVCA Ecosystem</span>
                         </div>
-                        <span className="text-2xl font-bold tracking-tight text-gradient">DashTalent</span>
                     </div>
 
-                    <h1 className="text-3xl font-bold text-center mb-2">Crear Cuenta</h1>
-                    <p className="text-gray-400 text-center mb-8">Únete a nuestra plataforma</p>
-
-                    <form action={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-6 relative z-10" noValidate>
                         {/* Full Name */}
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium mb-2 text-gray-300">
-                                Nombre Completo
+                        <div className="space-y-2">
+                            <label htmlFor="fullName" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                Nombre y Apellido
                             </label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <motion.div
+                                animate={fieldErrors.fullName ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                transition={{ duration: 0.4 }}
+                                className="relative"
+                            >
+                                <User className={cn(
+                                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                                    fieldErrors.fullName ? "text-red-500" : "text-gray-500"
+                                )} />
                                 <input
                                     id="fullName"
                                     name="fullName"
                                     type="text"
-                                    required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-12 py-3 outline-none focus:border-blue-500/50 transition-all"
-                                    placeholder="Juan Pérez"
+                                    className={cn(
+                                        "w-full bg-white/[0.03] border rounded-2xl px-12 py-4 text-sm outline-none transition-all font-medium",
+                                        fieldErrors.fullName
+                                            ? "border-red-500/50 bg-red-500/5 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                                            : "border-white/5 focus:border-indigo-500/50 focus:bg-white/[0.07]"
+                                    )}
+                                    placeholder="Isabella Rodríguez"
                                 />
-                            </div>
+                            </motion.div>
                         </div>
 
                         {/* Email */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium mb-2 text-gray-300">
+                        <div className="space-y-2">
+                            <label htmlFor="email" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                                 Correo Electrónico
                             </label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <motion.div
+                                animate={fieldErrors.email ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                transition={{ duration: 0.4 }}
+                                className="relative"
+                            >
+                                <Mail className={cn(
+                                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                                    fieldErrors.email ? "text-red-500" : "text-gray-500"
+                                )} />
                                 <input
                                     id="email"
                                     name="email"
                                     type="email"
-                                    required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-12 py-3 outline-none focus:border-blue-500/50 transition-all"
+                                    className={cn(
+                                        "w-full bg-white/[0.03] border rounded-2xl px-12 py-4 text-sm outline-none transition-all font-medium",
+                                        fieldErrors.email
+                                            ? "border-red-500/50 bg-red-500/5 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                                            : "border-white/5 focus:border-indigo-500/50 focus:bg-white/[0.07]"
+                                    )}
                                     placeholder="tu@email.com"
                                 />
-                            </div>
+                            </motion.div>
                         </div>
 
                         {/* Password */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium mb-2 text-gray-300">
-                                Contraseña
+                        <div className="space-y-2">
+                            <label htmlFor="password" className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                Contraseña (Mín. 6 caracteres)
                             </label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <motion.div
+                                animate={fieldErrors.password ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                transition={{ duration: 0.4 }}
+                                className="relative"
+                            >
+                                <Lock className={cn(
+                                    "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                                    fieldErrors.password ? "text-red-500" : "text-gray-500"
+                                )} />
                                 <input
                                     id="password"
                                     name="password"
                                     type="password"
-                                    required
-                                    minLength={6}
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-12 py-3 outline-none focus:border-blue-500/50 transition-all"
+                                    className={cn(
+                                        "w-full bg-white/[0.03] border rounded-2xl px-12 py-4 text-sm outline-none transition-all font-medium",
+                                        fieldErrors.password
+                                            ? "border-red-500/50 bg-red-500/5 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                                            : "border-white/5 focus:border-indigo-500/50 focus:bg-white/[0.07]"
+                                    )}
                                     placeholder="••••••••"
                                 />
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                            </motion.div>
                         </div>
 
                         {/* Error Message */}
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-red-400 text-sm"
-                            >
-                                {error}
-                            </motion.div>
-                        )}
+                        <AnimatePresence>
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 text-red-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-3"
+                                >
+                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                                    {error}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Submit Button */}
                         <button

@@ -216,3 +216,26 @@ export async function deleteTalent(id: string) {
     revalidatePath("/admin/talents");
     return { success: true };
 }
+
+export async function toggleTalentStatus(id: string, currentStatus: boolean) {
+    const supabase = process.env.SUPABASE_SERVICE_ROLE_KEY
+        ? createAdminClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        )
+        : await createClient();
+
+    const { error } = await supabase
+        .from("talents")
+        .update({ active: !currentStatus })
+        .eq("id", id);
+
+    if (error) {
+        console.error("Toggle Status Error:", error);
+        return { success: false, error: error.message };
+    }
+
+    revalidatePath("/admin/talents");
+    revalidatePath("/admin"); // For dashboard metrics
+    return { success: true };
+}

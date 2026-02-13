@@ -10,7 +10,6 @@ export default async function TalentsPage() {
     const { data: talents, error } = await supabase
         .from("talents")
         .select("*")
-        .eq("active", true)
         .order("created_at", { ascending: false });
 
     if (error) {

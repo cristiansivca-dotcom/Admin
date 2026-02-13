@@ -1,14 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { User, Tag, ChevronLeft, ChevronRight, Edit, Trash2, Loader2 } from "lucide-react";
+import { User, Tag, ChevronLeft, ChevronRight, Edit, Trash2, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { deleteTalent } from "@/app/admin/talents/add/actions";
+import { deleteTalent, toggleTalentStatus } from "@/app/admin/talents/add/actions";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/toast";
 import { useConfirm } from "@/lib/confirm";
+import { cn } from "@/lib/utils";
 
 interface Talent {
     id: string;
@@ -33,6 +34,7 @@ export default function TalentCard({ talent }: TalentCardProps) {
     const { confirm } = useConfirm();
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isTogglingStatus, setIsTogglingStatus] = useState(false);
     const photos = talent.fotos && talent.fotos.length > 0 ? talent.fotos : ["/placeholder-avatar.png"];
 
     const nextPhoto = () => {
@@ -41,6 +43,27 @@ export default function TalentCard({ talent }: TalentCardProps) {
 
     const prevPhoto = () => {
         setCurrentPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
+    };
+
+    const handleToggleStatus = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setIsTogglingStatus(true);
+        try {
+            const result = await toggleTalentStatus(talent.id, talent.active);
+            if (result.success) {
+                success(`${talent.nombre} ahora está ${!talent.active ? "Activo" : "Inactivo"}.`);
+                router.refresh();
+            } else {
+                toastError(`Error al cambiar estado: ${result.error}`);
+            }
+        } catch (error) {
+            console.error("Toggle status error:", error);
+            toastError("Ocurrió un error inesperado.");
+        } finally {
+            setIsTogglingStatus(false);
+        }
     };
 
     const handleDelete = async (e: React.MouseEvent) => {
@@ -81,13 +104,32 @@ export default function TalentCard({ talent }: TalentCardProps) {
             className="relative glass rounded-2xl overflow-hidden border border-white/10 hover:border-blue-500/30 transition-all group"
         >
             {/* Photo Gallery */}
-            <div className="relative aspect-[3/4] bg-gradient-to-br from-blue-600/10 to-indigo-600/10 overflow-hidden">
+            <div className={cn(
+                "relative aspect-[3/4] bg-gradient-to-br from-blue-600/10 to-indigo-600/10 overflow-hidden transition-all duration-500",
+                !talent.active && "grayscale opacity-60"
+            )}>
                 <Image
                     src={photos[currentPhotoIndex]}
                     alt={talent.nombre}
                     fill
                     className="object-cover"
                 />
+
+                {/* Status Indicator Badge */}
+                <div className="absolute top-4 left-4 z-40">
+                    <div className={cn(
+                        "flex items-center gap-2 px-3 py-1.5 rounded-full backdrop-blur-md border text-[10px] font-black uppercase tracking-widest transition-all",
+                        talent.active
+                            ? "bg-green-500/20 text-green-400 border-green-500/30"
+                            : "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                    )}>
+                        <span className={cn(
+                            "w-1.5 h-1.5 rounded-full",
+                            talent.active ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" : "bg-gray-500"
+                        )} />
+                        {talent.active ? "Disponible" : "No Disponible"}
+                    </div>
+                </div>
 
                 {/* Photo Navigation */}
                 {photos.length > 1 && (
@@ -125,6 +167,23 @@ export default function TalentCard({ talent }: TalentCardProps) {
 
             {/* Action Buttons (Top Right) */}
             <div className="absolute top-4 right-4 z-50 flex flex-col gap-3 transition-all duration-300">
+                <button
+                    onClick={handleToggleStatus}
+                    disabled={isTogglingStatus}
+                    className={cn(
+                        "backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all disabled:opacity-50",
+                        talent.active ? "bg-amber-500/40 hover:bg-amber-500/60" : "bg-blue-500/40 hover:bg-blue-500/60"
+                    )}
+                    title={talent.active ? "Desactivar Talento" : "Activar Talento"}
+                >
+                    {isTogglingStatus ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : talent.active ? (
+                        <EyeOff className="w-4 h-4" />
+                    ) : (
+                        <Eye className="w-4 h-4" />
+                    )}
+                </button>
                 <Link
                     href={`/admin/talents/${talent.id}/edit`}
                     className="bg-black/40 hover:bg-black/60 backdrop-blur-md text-white/80 hover:text-white p-2 rounded-full transition-all"
@@ -143,7 +202,7 @@ export default function TalentCard({ talent }: TalentCardProps) {
             </div>
 
             {/* Content */}
-            <div className="p-5 space-y-3">
+            <div className={cn("p-5 space-y-3 transition-opacity", !talent.active && "opacity-50")}>
                 {/* Name & Gender */}
                 <div>
                     <h3 className="text-xl font-bold tracking-tight">{talent.nombre}</h3>

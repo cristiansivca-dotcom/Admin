@@ -208,24 +208,28 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Nombre Artístico / Completo</label>
-                                    <Input
-                                        required
-                                        value={formData.nombre}
-                                        onChange={e => {
-                                            setFormData({ ...formData, nombre: e.target.value });
-                                            if (touched.nombre) {
-                                                const error = validateField("nombre", e.target.value);
-                                                setErrors({ ...errors, nombre: error });
-                                            }
-                                        }}
-                                        onBlur={() => handleBlur("nombre")}
-                                        placeholder="Ej. Isabella Rodríguez"
-                                        className={cn(
-                                            "bg-white/[0.03] border-white/5 focus:bg-white/[0.07] transition-all",
-                                            touched.nombre && errors.nombre && "border-red-500/50 bg-red-500/5",
-                                            touched.nombre && !errors.nombre && formData.nombre && "border-green-500/50 bg-green-500/5"
-                                        )}
-                                    />
+                                    <motion.div
+                                        animate={touched.nombre && errors.nombre ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        <Input
+                                            value={formData.nombre}
+                                            onChange={e => {
+                                                setFormData({ ...formData, nombre: e.target.value });
+                                                if (touched.nombre) {
+                                                    const error = validateField("nombre", e.target.value);
+                                                    setErrors({ ...errors, nombre: error });
+                                                }
+                                            }}
+                                            onBlur={() => handleBlur("nombre")}
+                                            placeholder="Ej. Isabella Rodríguez"
+                                            className={cn(
+                                                "bg-white/[0.03] border-white/5 focus:bg-white/[0.07] transition-all",
+                                                touched.nombre && errors.nombre && "border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
+                                                touched.nombre && !errors.nombre && formData.nombre && "border-green-500/50 bg-green-500/5"
+                                            )}
+                                        />
+                                    </motion.div>
                                     <AnimatePresence>
                                         {touched.nombre && errors.nombre && (
                                             <motion.div
@@ -254,23 +258,28 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Estatura</label>
-                                        <Input
-                                            value={formData.altura}
-                                            onChange={e => {
-                                                setFormData({ ...formData, altura: e.target.value });
-                                                if (touched.altura) {
-                                                    const error = validateField("altura", e.target.value);
-                                                    setErrors({ ...errors, altura: error });
-                                                }
-                                            }}
-                                            onBlur={() => handleBlur("altura")}
-                                            placeholder="1.78 m"
-                                            className={cn(
-                                                "bg-white/[0.03] border-white/5 text-center",
-                                                touched.altura && errors.altura && "border-red-500/50 bg-red-500/5",
-                                                touched.altura && !errors.altura && formData.altura && "border-green-500/50 bg-green-500/5"
-                                            )}
-                                        />
+                                        <motion.div
+                                            animate={touched.altura && errors.altura ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                            transition={{ duration: 0.4 }}
+                                        >
+                                            <Input
+                                                value={formData.altura}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, altura: e.target.value });
+                                                    if (touched.altura) {
+                                                        const error = validateField("altura", e.target.value);
+                                                        setErrors({ ...errors, altura: error });
+                                                    }
+                                                }}
+                                                onBlur={() => handleBlur("altura")}
+                                                placeholder="1.78 m"
+                                                className={cn(
+                                                    "bg-white/[0.03] border-white/5 text-center",
+                                                    touched.altura && errors.altura && "border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
+                                                    touched.altura && !errors.altura && formData.altura && "border-green-500/50 bg-green-500/5"
+                                                )}
+                                            />
+                                        </motion.div>
                                         <AnimatePresence>
                                             {touched.altura && errors.altura && (
                                                 <motion.div
@@ -316,27 +325,32 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Rating (0-5)</label>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    max="5"
-                                    step="0.1"
-                                    value={formData.rating}
-                                    onChange={e => {
-                                        setFormData({ ...formData, rating: e.target.value });
-                                        if (touched.rating) {
-                                            const error = validateField("rating", e.target.value);
-                                            setErrors({ ...errors, rating: error });
-                                        }
-                                    }}
-                                    onBlur={() => handleBlur("rating")}
-                                    placeholder="5.0"
-                                    className={cn(
-                                        "bg-white/[0.03] border-white/5",
-                                        touched.rating && errors.rating && "border-red-500/50 bg-red-500/5",
-                                        touched.rating && !errors.rating && formData.rating && "border-green-500/50 bg-green-500/5"
-                                    )}
-                                />
+                                <motion.div
+                                    animate={touched.rating && errors.rating ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                    transition={{ duration: 0.4 }}
+                                >
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        max="5"
+                                        step="0.1"
+                                        value={formData.rating}
+                                        onChange={e => {
+                                            setFormData({ ...formData, rating: e.target.value });
+                                            if (touched.rating) {
+                                                const error = validateField("rating", e.target.value);
+                                                setErrors({ ...errors, rating: error });
+                                            }
+                                        }}
+                                        onBlur={() => handleBlur("rating")}
+                                        placeholder="5.0"
+                                        className={cn(
+                                            "bg-white/[0.03] border-white/5",
+                                            touched.rating && errors.rating && "border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]",
+                                            touched.rating && !errors.rating && formData.rating && "border-green-500/50 bg-green-500/5"
+                                        )}
+                                    />
+                                </motion.div>
                                 <AnimatePresence>
                                     {touched.rating && errors.rating && (
                                         <motion.div
@@ -380,21 +394,30 @@ export default function TalentForm({ initialData, mode, onSubmit }: TalentFormPr
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <label className="text-xs font-black text-gray-500 uppercase tracking-widest ml-1">Subir Fotos</label>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={e => {
-                                        const selected = Array.from(e.target.files || []);
-                                        setFiles(prev => [...prev, ...selected]);
-                                        if (touched.files) {
-                                            const error = validateField("files", [...files, ...selected]);
-                                            setErrors({ ...errors, files: error });
-                                        }
-                                        e.target.value = "";
-                                    }}
-                                    className="w-full text-xs text-white/80"
-                                />
+                                <motion.div
+                                    animate={touched.files && errors.files ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
+                                    transition={{ duration: 0.4 }}
+                                    className={cn(
+                                        "p-4 rounded-2xl border transition-all",
+                                        touched.files && errors.files ? "border-red-500/50 bg-red-500/5 shadow-[0_0_15px_rgba(239,68,68,0.1)]" : "border-white/5 bg-white/[0.03]"
+                                    )}
+                                >
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={e => {
+                                            const selected = Array.from(e.target.files || []);
+                                            setFiles(prev => [...prev, ...selected]);
+                                            if (touched.files) {
+                                                const error = validateField("files", [...files, ...selected]);
+                                                setErrors({ ...errors, files: error });
+                                            }
+                                            e.target.value = "";
+                                        }}
+                                        className="w-full text-xs text-white/80 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-600/10 file:text-blue-500 hover:file:bg-blue-600/20 transition-all pointer-events-auto cursor-pointer"
+                                    />
+                                </motion.div>
                                 <AnimatePresence>
                                     {touched.files && errors.files && (
                                         <motion.div

@@ -26,10 +26,12 @@ interface TalentCatalogProps {
 
 export default function TalentCatalog({ initialTalents }: TalentCatalogProps) {
     const [filter, setFilter] = useState<"Todos" | "Dama" | "Caballero">("Todos");
+    const [showInactive, setShowInactive] = useState(false);
 
     const filteredTalents = initialTalents.filter(talent => {
-        if (filter === "Todos") return true;
-        return talent.genero === filter;
+        const matchesGender = filter === "Todos" || talent.genero === filter;
+        const matchesStatus = showInactive || talent.active;
+        return matchesGender && matchesStatus;
     });
 
     const categories = ["Todos", "Dama", "Caballero"] as const;
@@ -41,11 +43,28 @@ export default function TalentCatalog({ initialTalents }: TalentCatalogProps) {
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Catálogo de Talentos</h1>
                     <p className="text-gray-400 mt-1">
-                        {filteredTalents.length} talento{filteredTalents.length !== 1 ? "s" : ""} registrado{filteredTalents.length !== 1 ? "s" : ""}
+                        {filteredTalents.length} talento{filteredTalents.length !== 1 ? "s" : ""} {showInactive ? "en total" : "disponibles"}
                     </p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    {/* Status Toggle */}
+                    <button
+                        onClick={() => setShowInactive(!showInactive)}
+                        className={cn(
+                            "flex items-center gap-2 px-4 py-2 rounded-xl border transition-all text-xs font-bold uppercase tracking-widest",
+                            showInactive
+                                ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                                : "bg-white/5 border-white/10 text-gray-400 hover:text-white"
+                        )}
+                    >
+                        <div className={cn(
+                            "w-2 h-2 rounded-full transition-all",
+                            showInactive ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" : "bg-gray-600"
+                        )} />
+                        Mostrar Inactivos
+                    </button>
+
                     {/* Filter Tabs */}
                     <div className="bg-white/5 p-1 rounded-xl flex items-center border border-white/10">
                         {categories.map((category) => (
