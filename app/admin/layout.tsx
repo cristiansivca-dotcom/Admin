@@ -2,10 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, Users, UserPlus, LogOut, Search, Bell, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, LogOut, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { logout } from "./actions";
+
+import HeaderNotifications from "@/components/HeaderNotifications";
+import GlobalSearch from "@/components/GlobalSearch";
 
 interface NavItemProps {
     icon: React.ComponentType<{ className?: string }>;
@@ -81,22 +84,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
                 <header className="h-20 border-b border-white/5 px-8 flex items-center justify-between glass sticky top-0 z-30">
-                    <div className="flex items-center gap-4 flex-1 max-w-xl">
-                        <div className="relative w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                            <input
-                                type="text"
-                                placeholder="Buscar talentos, etiquetas o estados..."
-                                className="w-full bg-white/5 border border-white/5 rounded-2xl px-12 py-3 text-sm outline-none focus:border-blue-500/50 transition-all font-light"
-                            />
-                        </div>
-                    </div>
+                    <GlobalSearch />
 
                     <div className="flex items-center gap-6">
-                        <button className="relative text-gray-400 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/5">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full border-2 border-[#050505]" />
-                        </button>
+                        <HeaderNotifications />
                         <div className="flex items-center gap-3 pl-6 border-l border-white/5">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-bold tracking-tight">Admin Senior</p>

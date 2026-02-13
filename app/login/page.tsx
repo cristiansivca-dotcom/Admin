@@ -95,7 +95,7 @@ export default function LoginPage() {
                             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl px-6 py-3 font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
                         >
                             {loading ? (
-                                "Iniciando sesión..."
+                                "Iniciando..."
                             ) : (
                                 <>
                                     Iniciar Sesión

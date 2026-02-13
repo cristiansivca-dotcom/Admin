@@ -1,7 +1,10 @@
 import { Users, UserCheck, Star, Clock, ArrowUpRight, LayoutDashboard, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/server";
+import ActivityFeed from "./ActivityFeed";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const StatCard = ({ icon: Icon, label, value, color }: { icon: LucideIcon, label: string, value: string, color: string }) => (
     <div className="glass p-6 rounded-3xl border border-white/5 glass-hover group">
@@ -25,7 +28,58 @@ const StatCard = ({ icon: Icon, label, value, color }: { icon: LucideIcon, label
     </div>
 );
 
-export default function AdminDashboard() {
+import Link from "next/link";
+
+export default async function AdminDashboard({
+    searchParams
+}: {
+    searchParams: Promise<{ period?: string }>
+}) {
+    const { period = "week" } = await searchParams;
+    const supabase = await createClient();
+
+    // Calculate date range based on period
+    const filterDate = new Date();
+    if (period === "today") {
+        filterDate.setHours(filterDate.getHours() - 24);
+    } else if (period === "month") {
+        filterDate.setMonth(filterDate.getMonth() - 1);
+    } else {
+        // Default: week
+        filterDate.setDate(filterDate.getDate() - 7);
+    }
+
+    // 1. Total Talents (Always absolute total)
+    const { count: totalTalents } = await supabase
+        .from("talents")
+        .select("*", { count: "exact", head: true });
+
+    // 2. Active Talents (Total active)
+    const { count: activeTalents } = await supabase
+        .from("talents")
+        .select("*", { count: "exact", head: true })
+        .eq("active", true);
+
+    // 3. Elite Talents (Rating >= 4.5)
+    const { count: eliteTalents } = await supabase
+        .from("talents")
+        .select("*", { count: "exact", head: true })
+        .gte("rating", 4.5);
+
+    // 4. New Talents (Filtered by period)
+    const { count: newTalents } = await supabase
+        .from("talents")
+        .select("*", { count: "exact", head: true })
+        .gte("created_at", filterDate.toISOString());
+
+    // 5. Recent Activity (Filtered by period, limited to 4)
+    const { data: recentTalents } = await supabase
+        .from("talents")
+        .select("id, nombre, created_at, active")
+        .gte("created_at", filterDate.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(4);
+
     return (
         <div className="space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -34,17 +88,41 @@ export default function AdminDashboard() {
                     <p className="text-gray-400 mt-1 font-medium italic">Visión general del ecosistema de talentos SIVCA.</p>
                 </div>
                 <div className="flex items-center gap-2 bg-white/5 border border-white/5 p-1 rounded-2xl">
-                    <button className="px-4 py-2 bg-blue-600 text-[10px] font-bold uppercase tracking-tighter rounded-xl shadow-lg shadow-blue-500/20 transition-all">Hoy</button>
-                    <button className="px-4 py-2 text-[10px] font-bold uppercase tracking-tighter text-gray-500 hover:text-white transition-all">Semana</button>
-                    <button className="px-4 py-2 text-[10px] font-bold uppercase tracking-tighter text-gray-500 hover:text-white transition-all">Mes</button>
+                    <Link
+                        href="/admin?period=today"
+                        className={cn(
+                            "px-4 py-2 text-[10px] font-bold uppercase tracking-tighter rounded-xl transition-all",
+                            period === "today" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-500 hover:text-white"
+                        )}
+                    >
+                        Hoy
+                    </Link>
+                    <Link
+                        href="/admin?period=week"
+                        className={cn(
+                            "px-4 py-2 text-[10px] font-bold uppercase tracking-tighter rounded-xl transition-all",
+                            period === "week" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-500 hover:text-white"
+                        )}
+                    >
+                        Semana
+                    </Link>
+                    <Link
+                        href="/admin?period=month"
+                        className={cn(
+                            "px-4 py-2 text-[10px] font-bold uppercase tracking-tighter rounded-xl transition-all",
+                            period === "month" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "text-gray-500 hover:text-white"
+                        )}
+                    >
+                        Mes
+                    </Link>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard icon={Users} label="Base de Datos" value="24" color="blue" />
-                <StatCard icon={UserCheck} label="Disponibles" value="18" color="green" />
-                <StatCard icon={Star} label="Perfil Elite" value="05" color="yellow" />
-                <StatCard icon={Clock} label="Nuevas Altas" value="03" color="purple" />
+                <StatCard icon={Users} label="Base de Datos" value={(totalTalents || 0).toString().padStart(2, '0')} color="blue" />
+                <StatCard icon={UserCheck} label="Disponibles" value={(activeTalents || 0).toString().padStart(2, '0')} color="green" />
+                <StatCard icon={Star} label="Perfil Elite" value={(eliteTalents || 0).toString().padStart(2, '0')} color="yellow" />
+                <StatCard icon={Clock} label="Nuevas Altas" value={(newTalents || 0).toString().padStart(2, '0')} color="purple" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -57,21 +135,7 @@ export default function AdminDashboard() {
                         </span>
                     </div>
                     <div className="space-y-4">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex items-center gap-5 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.05] transition-colors group cursor-pointer">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center overflow-hidden">
-                                    <Users className="w-6 h-6 text-gray-600 group-hover:text-blue-500/50 transition-colors" />
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-sm tracking-tight group-hover:text-blue-400 transition-colors">Nuevo registro en Catálogo</h4>
-                                    <p className="text-xs text-gray-500 mt-1 font-medium">Actualizado por sistema • Hace {i * 15} min</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[10px] font-black text-gray-600 uppercase">Status</p>
-                                    <p className="text-[10px] font-bold text-blue-500 uppercase">Activo</p>
-                                </div>
-                            </div>
-                        ))}
+                        <ActivityFeed initialTalents={recentTalents || []} />
                     </div>
                 </div>
 
@@ -84,7 +148,7 @@ export default function AdminDashboard() {
                     </div>
                     <h3 className="text-xl font-black tracking-tight">Proyección de Crecimiento</h3>
                     <p className="text-sm text-gray-500 mt-3 max-w-[200px] leading-relaxed font-medium">
-                        El sistema de inteligencia artificial está analizando las tendencias del catálogo.
+                        El sistema de inteligencia artificial estima un crecimiento sostenido en el catálogo este mes.
                     </p>
                     <div className="mt-8 w-full h-1 bg-white/5 rounded-full overflow-hidden">
                         <div className="w-2/3 h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full" />

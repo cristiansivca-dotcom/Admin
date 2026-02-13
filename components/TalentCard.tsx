@@ -8,6 +8,7 @@ import Image from "next/image";
 import { deleteTalent } from "@/app/admin/talents/add/actions";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/lib/toast";
+import { useConfirm } from "@/lib/confirm";
 
 interface Talent {
     id: string;
@@ -29,6 +30,7 @@ interface TalentCardProps {
 export default function TalentCard({ talent }: TalentCardProps) {
     const router = useRouter();
     const { success, error: toastError } = useToast();
+    const { confirm } = useConfirm();
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
     const photos = talent.fotos && talent.fotos.length > 0 ? talent.fotos : ["/placeholder-avatar.png"];
@@ -45,7 +47,15 @@ export default function TalentCard({ talent }: TalentCardProps) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (confirm(`¿Estás seguro de que deseas eliminar a ${talent.nombre}? Esta acción no se puede deshacer.`)) {
+        const confirmed = await confirm({
+            title: "¿Eliminar talento?",
+            message: `¿Estás seguro de que deseas eliminar a ${talent.nombre}? Esta acción no se puede deshacer.`,
+            confirmText: "Eliminar",
+            cancelText: "Cancelar",
+            variant: "danger"
+        });
+
+        if (confirmed) {
             setIsDeleting(true);
             try {
                 const result = await deleteTalent(talent.id);
